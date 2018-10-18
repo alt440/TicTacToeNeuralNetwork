@@ -15,7 +15,7 @@ def messageWin(Xplay):
     global win;
     win= True
 
-def checkWin(row, column, Xplay):
+def checkWin(row, column, Xplay, board):
     Xplay=int(Xplay)
 
     if row == 0 and board[row + 1][column] == int(Xplay) and board[row + 2][column] == int(Xplay):
@@ -64,14 +64,14 @@ def play():
         if Xplay:
             board[row][column] = 1
             # check winning condition
-            value = checkWin(row, column, Xplay)
+            value = checkWin(row, column, Xplay, board)
             if value ==1:
                 messageWin(Xplay)
 
         else:
             board[row][column] = 0
             # check winning condition
-            value = checkWin(row, column, Xplay)
+            value = checkWin(row, column, Xplay, board)
             if value == 1:
                 messageWin(Xplay)
 
