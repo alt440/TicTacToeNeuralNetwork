@@ -105,7 +105,7 @@ while (i < 19682):
 
     # then if valid, put string number into file, with its initial P value: 0.5
     if someBool:
-        f.write(number4GridString + ' 0.5')
+        f.write(number4GridString + ' 0.5\n')
         print(number4GridString+ ' 0.5')
     #print(i)
     i += 1
