@@ -41,9 +41,9 @@ def isOnePlayerWinning(number4GridStr):
             board[i][j]=int(number4GridStr[i])
 
     for i in range(9):
-        if checkWin(i//3, i%3, 1):
+        if checkWin(i//3, i%3, 1, board):
             countXWins+=1
-        elif checkWin(i//3, i%3, 0):
+        elif checkWin(i//3, i%3, 0, board):
             countOWins+=1
 
     #limit the possibility to two wins of 1 player at the same time, because for three AI would be dumb

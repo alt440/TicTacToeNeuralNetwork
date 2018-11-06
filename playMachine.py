@@ -3,6 +3,17 @@ from tictactoePlay import messageWin
 from tictactoePlay import checkWin
 from random import randint
 
+def saveToFiles(contentXPVal, contentXBoard, contentOPVal, contentOBoard):
+    fileO = open("../contentsO2.txt", "w")
+    fileX = open("../contentsX2.txt", "w")
+
+    # since all the files have the same number of boards, put them all in same for loop
+    for i in range(len(contentOBoard)):
+        fileO.write(str(contentOBoard[i])+' '+str(contentOPVal[i])+'\n')
+        fileX.write(str(contentXBoard[i])+' '+str(contentXPVal[i])+'\n')
+
+    fileO.close()
+    fileX.close()
 
 def play():
 
@@ -10,8 +21,9 @@ def play():
     turns = 0
 
     alphaValue = 0.5  # decreases a little every time a game is played
-    fileO = open("../contentsO.txt", "r")
-    fileX = open("../contentsX.txt", "r")
+    decreasingValue = 0.0000001 # the decrease amount of the alpha value after every game
+    fileO = open("../contentsO2.txt", "r")
+    fileX = open("../contentsX2.txt", "r")
 
 
 
@@ -62,133 +74,275 @@ def play():
 
         while not win:
 
+            # X PLAYS
             if Xplay:
                 # choose move according to X from the contentsX.txt file
 
-                # if turns%turnsBeforeRandomizedMove == 0:
-                    # possibilities = currentboard.count('2')
-                    # randomMove = randint(0, possibilities-1)
+                # X PLAYS RANDOM
+                if turns%turnsBeforeRandomizedMove == 0:
+                    draw = False
+                    possibilities = currentboard.count('2')
+                    if possibilities > 1:
+                        randomMove = randint(0, possibilities-1)
+                    elif possibilities == 1:
+                        randomMove = 0
+                    else:
+                        draw = True
+                        win = True
+                        alphaValue -= decreasingValue
+                        print(''.join(currentboard) + ' DRAW! XRAND')
 
+                    if not draw:
+                        count2 = -1
+                        indexChanged = 0
+                        for i in range(0,len(currentboard)):
+                            if count2 == randomMove:
+                                currentboard[indexChanged] = '1'
+                                board[indexChanged//3][indexChanged%3] = 1
+                                print('XRAND move position '+str(indexChanged))
+                                # search for index of board in X list
+                                indexBoard = -1
+                                intCurrentBoard = int(''.join(currentboard))
+                                for j in range(0,len(contentXBoard)):
+                                    if intCurrentBoard == int(contentXBoard[j]):
+                                        indexBoard = j
+                                        break
 
-                currentboardReplica = currentboard[:]
+                                movesMadeX.append(indexBoard)
+                                value = checkWin(indexChanged // 3, indexChanged % 3, Xplay, board)
 
-                maxPValue = 0
-                maxPValueBoard = ''
-                maxPIndex = -1 #to modify P value at the end of the game
-                positionChanged = 0
+                                if value == 1:
+                                    messageWin(Xplay)
+                                    win = True
+                                    print(''.join(currentboard) + ' XRAND')
+                                    # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
+                                    for n in range(len(movesMadeX) - 1, -1, -1):
+                                        if n == len(movesMadeX) - 1:
+                                            contentXPval[movesMadeX[n]] = 1
+                                        else:
+                                            contentXPval[movesMadeX[n]] = contentXPval[movesMadeX[n]] + \
+                                                                      alphaValue * (contentXPval[movesMadeX[n + 1]] -
+                                                                                    contentXPval[
+                                                                                        movesMadeX[n]])
+                                        print('values registered:'+str(contentXPval[movesMadeX[n]]))
 
-                for i in range(len(currentboard)):
-                    if currentboard[i] is '2':
-                        currentboardReplica[i] = '1'
-                        intCurrentBoardReplica = int(''.join(currentboardReplica))
-                        #get P value for that new board
-                        for j in range(len(contentXBoard)):
-                            if intCurrentBoardReplica == int(contentXBoard[j]) and maxPValue < contentXPval[j]:
-                                maxPValue = contentXPval[j]
-                                maxPValueBoard = contentXBoard[j]
-                                maxPIndex = j
-                                positionChanged = i
+                                    for n in range(len(movesMadeO) - 1, -1, -1):
+                                        if n == len(movesMadeO) - 1:
+                                            contentOPval[movesMadeO[n]] = 0
+                                        else:
+                                            contentOPval[movesMadeO[n]] = contentOPval[movesMadeO[n]] + \
+                                                                      alphaValue * (contentOPval[movesMadeO[n + 1]] -
+                                                                                    contentOPval[
+                                                                                        movesMadeO[n]])
+                                        print('values registered:' + str(contentOPval[movesMadeO[n]]))
+
+                                    # decrease a little alpha
+                                    alphaValue -= decreasingValue
                                 break
 
-                        currentboardReplica = currentboard[:]
+                            if currentboard[i] is '2':
+                                count2 += 1
+                                indexChanged = i
 
-                    if i == len(currentboard)-1 and maxPIndex == -1: # to declare draw
-                        win = True
-                        print('DRAW!')
+                # X PLAYS LOGICALLY
+                else:
+                    currentboardReplica = currentboard[:]
 
-                # update current board
-                board[positionChanged//3][positionChanged%3] = 1
-                currentboard[positionChanged] = '1'
-                # remember move. do join because currentboard is a list
-                movesMadeX.append(maxPIndex)
-                # check winning condition
-                value = checkWin(positionChanged//3, positionChanged%3, Xplay, board)
-                if value ==1:
-                    messageWin(Xplay)
-                    win = True
-                    print(''.join(currentboard))
-                    # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
-                    for n in range(len(movesMadeX)-1, -1, -1):
-                        if n == len(movesMadeX)-1:
-                            contentXPval[movesMadeX[n]]=1
-                        else:
-                            contentXPval[movesMadeX[n]]=contentXPval[movesMadeX[n]] + \
+                    maxPValue = 0
+                    maxPValueBoard = ''
+                    maxPIndex = -1 #to modify P value at the end of the game
+                    positionChanged = -1
+                    draw = False
+
+                    for i in range(0,len(currentboard)):
+                        if currentboard[i] is '2':
+                            currentboardReplica[i] = '1'
+                            intCurrentBoardReplica = int(''.join(currentboardReplica))
+                            # get P value for that new board
+                            for j in range(0,len(contentXBoard)):
+                                if intCurrentBoardReplica == int(contentXBoard[j]) and maxPValue < contentXPval[j]:
+                                    maxPValue = contentXPval[j]
+                                    maxPValueBoard = contentXBoard[j]
+                                    maxPIndex = j
+                                    positionChanged = i
+                                    break
+
+                            currentboardReplica = currentboard[:]
+
+                        elif i == len(currentboard)-1 and maxPIndex == -1: # to declare draw
+                            win = True
+                            draw = True
+                            alphaValue -= decreasingValue
+                            print(''.join(currentboard)+'DRAW! XLOG')
+
+                    if not draw and positionChanged !=-1:
+                        # update current board
+                        board[positionChanged//3][positionChanged%3] = 1
+                        currentboard[positionChanged] = '1'
+                        print('XLOG move position '+str(positionChanged))
+                        # remember move. do join because currentboard is a list
+                        movesMadeX.append(maxPIndex)
+                        # check winning condition
+                        value = checkWin(positionChanged//3, positionChanged%3, Xplay, board)
+                        if value ==1:
+                            messageWin(Xplay)
+                            win = True
+                            print(''.join(currentboard) + ' XLOG')
+                            # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
+                            for n in range(len(movesMadeX)-1, -1, -1):
+                                if n == len(movesMadeX)-1:
+                                    contentXPval[movesMadeX[n]]=1
+                                else:
+                                    contentXPval[movesMadeX[n]]=contentXPval[movesMadeX[n]] + \
                                                     alphaValue*(contentXPval[movesMadeX[n+1]]-contentXPval[movesMadeX[n]])
-                            # print('values registered:'+str(contentXPval[movesMadeX[n]]))
+                                print('values registered:'+str(contentXPval[movesMadeX[n]]))
 
-                    for n in range(len(movesMadeO)-1, -1, -1):
-                        if n == len(movesMadeO)-1:
-                            contentOPval[movesMadeO[n]]=0
-                        else:
-                            contentOPval[movesMadeO[n]]=contentOPval[movesMadeO[n]] + \
+                            for n in range(len(movesMadeO)-1, -1, -1):
+                                if n == len(movesMadeO)-1:
+                                    contentOPval[movesMadeO[n]]=0
+                                else:
+                                    contentOPval[movesMadeO[n]]=contentOPval[movesMadeO[n]] + \
                                                     alphaValue*(contentOPval[movesMadeO[n+1]]-contentOPval[movesMadeO[n]])
-                            # print('values registered:' + str(contentOPval[movesMadeO[n]]))
+                                print('values registered:' + str(contentOPval[movesMadeO[n]]))
 
-                    #decrease a little alpha
-                    alphaValue -= 0.05
+                            #decrease a little alpha
+                            alphaValue -= decreasingValue
 
+            # O PLAYS
+            elif not Xplay:
 
-            else:
-                # choose move according to O from the contextO.txt file
-                currentboardReplica = currentboard[:]
+                # O PLAYS RANDOM
+                if turns%turnsBeforeRandomizedMove == 0:
+                    draw = False
+                    possibilities = currentboard.count('2')
+                    if possibilities > 1:
+                        randomMove = randint(0, possibilities-1)
+                    elif possibilities == 1:
+                        randomMove = 0
+                    else:
+                        draw = True
+                        win = True
+                        alphaValue -= decreasingValue
+                        print(''.join(currentboard)+ ' DRAW! ORAND')
 
-                maxPValue = 0
-                maxPValueBoard = ''
-                maxPIndex = -1  # to modify P value at the end of the game
-                positionChanged = 0
+                    if not draw:
+                        count2 = -1
+                        indexChanged = 0
+                        for i in range(0,len(currentboard)):
+                            if count2 == randomMove:
+                                currentboard[indexChanged] = '0'
+                                board[indexChanged//3][indexChanged%3] = 0
+                                print('ORAND move position '+str(indexChanged))
+                                # search for index of board in X list
+                                indexBoard = -1
+                                intCurrentBoard = int(''.join(currentboard))
+                                for j in range(0,len(contentOBoard)):
+                                    if intCurrentBoard == int(contentOBoard[j]):
+                                        indexBoard = j
+                                        break
 
-                for i in range(len(currentboard)):
-                    if currentboard[i] is '2':
-                        currentboardReplica[i] = '0'
-                        intCurrentBoardReplica = int(''.join(currentboardReplica))
-                        # get P value for that new board
-                        for j in range(len(contentOBoard)):
-                            if intCurrentBoardReplica == int(contentOBoard[j]) and maxPValue < contentOPval[j]:
-                                maxPValue = contentOPval[j]
-                                maxPValueBoard = contentOBoard[j]
-                                maxPIndex = j
-                                positionChanged = i
+                                movesMadeO.append(indexBoard)
+                                value = checkWin(indexChanged // 3, indexChanged % 3, Xplay, board)
+
+                                if value == 1:
+                                    messageWin(Xplay)
+                                    win = True
+                                    print(''.join(currentboard) + ' ORAND')
+                                    # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
+                                    for n in range(len(movesMadeO) - 1, -1, -1):
+                                        if n == len(movesMadeO) - 1:
+                                            contentOPval[movesMadeO[n]] = 1
+                                        else:
+                                            contentOPval[movesMadeO[n]] = contentOPval[movesMadeO[n]] + \
+                                                                      alphaValue * (contentOPval[movesMadeO[n + 1]] -
+                                                                                    contentOPval[movesMadeO[n]])
+                                        print('values registered:'+str(contentOPval[movesMadeO[n]]))
+
+                                    for n in range(len(movesMadeX) - 1, -1, -1):
+                                        if n == len(movesMadeX) - 1:
+                                            contentXPval[movesMadeX[n]] = 0
+                                        else:
+                                            contentXPval[movesMadeX[n]] = contentXPval[movesMadeX[n]] + \
+                                                                      alphaValue * (contentXPval[movesMadeX[n + 1]] -
+                                                                                    contentXPval[movesMadeX[n]])
+                                        print('values registered:' + str(contentXPval[movesMadeX[n]]))
+
+                                    # decrease a little alpha
+                                    alphaValue -= decreasingValue
                                 break
 
-                        currentboardReplica = currentboard[:]
+                            if currentboard[i] is '2':
+                                count2 += 1
+                                indexChanged = i
 
-                    if i == len(currentboard)-1 and maxPIndex == -1: # to declare draw
-                        win = True
-                        print('DRAW!')
+                # O PLAYS LOGICALLY
+                elif turns%turnsBeforeRandomizedMove != 0:
+                    # choose move according to O from the contextO.txt file
+                    currentboardReplica = currentboard[:]
+                    draw = False
+                    maxPValue = 0
+                    maxPValueBoard = ''
+                    maxPIndex = -1  # to modify P value at the end of the game
+                    positionChanged = -1
 
-                # update current board
-                board[positionChanged // 3][positionChanged % 3] = 0
-                currentboard[positionChanged]='0'
-                # remember move. do join because currentboard is a list
-                movesMadeO.append(maxPIndex)
-                # check winning condition
-                value = checkWin(positionChanged // 3, positionChanged % 3, Xplay, board)
-                if value == 1:
-                    messageWin(Xplay)
-                    win = True
-                    # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
-                    for n in range(len(movesMadeX) - 1, -1, -1):
-                        if n == len(movesMadeX) - 1:
-                            contentXPval[movesMadeX[n]] = 0
-                        else:
-                            contentXPval[movesMadeX[n]] = contentXPval[movesMadeX[n]] + \
-                                                      alphaValue * (contentXPval[movesMadeX[n + 1]] - contentXPval[
-                            movesMadeX[n]])
-                            # print('values registered:'+str(contentXPval[movesMadeX[n]]))
+                    for i in range(0,len(currentboard)):
+                        if currentboard[i] is '2':
+                            currentboardReplica[i] = '0'
+                            intCurrentBoardReplica = int(''.join(currentboardReplica))
+                            # get P value for that new board
+                            for j in range(0,len(contentOBoard)):
+                                if intCurrentBoardReplica == int(contentOBoard[j]) and maxPValue < contentOPval[j]:
+                                    maxPValue = contentOPval[j]
+                                    maxPValueBoard = contentOBoard[j]
+                                    maxPIndex = j
+                                    positionChanged = i
+                                    break
 
-                    for n in range(len(movesMadeO) - 1, -1, -1):
-                        if n == len(movesMadeO) - 1:
-                            contentOPval[movesMadeO[n]] = 1
-                        else:
-                            contentOPval[movesMadeO[n]] = contentOPval[movesMadeO[n]] + \
+                            currentboardReplica = currentboard[:]
+
+                        elif i == len(currentboard)-1 and maxPIndex == -1: # to declare draw
+                            win = True
+                            draw = True
+                            alphaValue -= decreasingValue
+                            print(''.join(currentboard)+' DRAW! OLOG')
+
+                    if not draw and positionChanged !=-1:
+                        # update current board
+                        board[positionChanged // 3][positionChanged % 3] = 0
+                        currentboard[positionChanged]='0'
+                        print('OLOG move position '+str(positionChanged))
+                        # remember move. do join because currentboard is a list
+                        movesMadeO.append(maxPIndex)
+                        # check winning condition
+                        value = checkWin(positionChanged // 3, positionChanged % 3, Xplay, board)
+                        if value == 1:
+                            messageWin(Xplay)
+                            win = True
+                            print(''.join(currentboard) + ' OLOG')
+                            # change values of each state of board played for X AND O in contentsX.txt AND contentsO.txt
+                            for n in range(len(movesMadeX) - 1, -1, -1):
+                                if n == len(movesMadeX) - 1:
+                                    contentXPval[movesMadeX[n]] = 0
+                                else:
+                                    contentXPval[movesMadeX[n]] = contentXPval[movesMadeX[n]] + \
+                                                      alphaValue * (contentXPval[movesMadeX[n + 1]] - contentXPval[movesMadeX[n]])
+                                print('values registered:'+str(contentXPval[movesMadeX[n]]))
+
+                            for n in range(len(movesMadeO) - 1, -1, -1):
+                                if n == len(movesMadeO) - 1:
+                                    contentOPval[movesMadeO[n]] = 1
+                                else:
+                                    contentOPval[movesMadeO[n]] = contentOPval[movesMadeO[n]] + \
                                                       alphaValue * (contentOPval[movesMadeO[n + 1]] - contentOPval[
-                            movesMadeO[n]])
-                            # print('values registered:' + str(contentOPval[movesMadeO[n]]))
+                                    movesMadeO[n]])
+                                print('values registered:' + str(contentOPval[movesMadeO[n]]))
 
-                    # decrease a little alpha
-                    alphaValue -= 0.05
+                            # decrease a little alpha
+                            alphaValue -= decreasingValue
 
             Xplay = not Xplay
-            turns+=1
+            turns += 1
+
+        saveToFiles(contentXPval, contentXBoard, contentOPval, contentOBoard)
 
 play()

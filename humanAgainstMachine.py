@@ -13,6 +13,7 @@ contentOBoard = []
 contentOPval = []
 for i in range(len(contentOwithP)):
     arraySplit = contentOwithP[i].split( )
+    # print(str(arraySplit[0])+" "+str(arraySplit[1]))
     contentOBoard.append(arraySplit[0])
     contentOPval.append(float(arraySplit[1]))
 
@@ -38,6 +39,7 @@ while not win:
         row = x // 3
         column = x % 3
 
+        # loop until player gives a valid location
         while currentboard[x] != '2':
             x = input("Enter your move (from position 1 to 9 on tic tac toe board):")
 
