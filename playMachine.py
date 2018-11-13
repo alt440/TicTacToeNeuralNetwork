@@ -3,6 +3,9 @@ from tictactoePlay import messageWin
 from tictactoePlay import checkWin
 from random import randint
 
+# please check humanAgainstMachine.py to get more knowledge before coming here
+# please check randomPlayMachine.py comments first. It will explain all of this
+
 def saveToFiles(contentXPVal, contentXBoard, contentOPVal, contentOBoard):
     fileO = open("../contentsO2.txt", "w")
     fileX = open("../contentsX2.txt", "w")

@@ -1,12 +1,16 @@
-#9 positions
+# 9 positions
 
-#can place O and X  on any of those nine positions
+# can place O and X  on any of those nine positions
+
+# a simple tic tac toe game
+# you should read commented file humanAgainstMachine.py before going onto this one
 
 board = [[2 for y in range(3)] for x in range(3)]
 
 Xplay = True
 win = False
 
+# returns a message for the user who won
 def messageWin(Xplay):
     if Xplay:
         print("You Won X!")
@@ -15,6 +19,7 @@ def messageWin(Xplay):
     global win;
     win= True
 
+# checks if the user has won from a position by checking diagonals, horizontal, and vertical from that position
 def checkWin(row, column, Xplay, board):
     Xplay=int(Xplay)
 
