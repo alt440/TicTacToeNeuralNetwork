@@ -2,6 +2,9 @@ from tictactoePlay import checkWin
 from tictactoePlay import messageWin
 import sys
 
+# for more information on the P values and the alpha values, as well as to get a general understanding
+# of the machine learning process, check the TicTacToe.pdf.
+
 fileO = open("contentsO2.txt", "r")
 
 # take the file line by line
